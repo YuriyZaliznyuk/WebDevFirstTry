@@ -54,6 +54,14 @@ class MainPage(Handler):
         # output = output % output_hidden
 		
         # self.write(output)
+        
+class FizzBuzz(Handler):
+    def get(self):
+        n = self.request.get("n")
+        if n.isdigit():
+            n = int(n)
+        self.render("fizzbuzz.html", n = n)
 
 app = webapp2.WSGIApplication([('/', MainPage),
+                               ('/fizzbuzz', FizzBuzz),
                               ], debug=True)
