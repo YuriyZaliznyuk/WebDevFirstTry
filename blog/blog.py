@@ -21,43 +21,12 @@ class BlogHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kw))
 
 class MainPage(BlogHandler):
-    # def render_front(self, title="", art="", error=""):
-        # arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
-        # #arts = top_arts()
-        # #points = []
-        # #for a in arts:
-        # #    if a.coords:
-        # #        points.append(a.coords)
-        
-        # #img_url = None
-        # #if points:
-        # #    img_url = gmaps_img(points)
-        
-        # self.render("front.html", title=title, art=art, error = error, arts = arts)
-        
     def get(self):
-        #self.render_front()
         self.write("Hello, Uda!")
         
-    # def post(self):
-        # title = self.request.get("title")
-        # art = self.request.get("art")
-        # if title and art:
-            # #coords = get_coords(self.request.remote_addr)
-            # a = Art(title = title, art = art)
-            # #if coords:
-            # #    a.coords = coords
-            # a.put()
-            # #top_arts(True)
-            
-            # self.redirect("/")
-        # else:
-            # error = "we need both a title and some artwork!"
-            # self.render_front(title, art, error)
-
 # blog stuff            
             
-def blog_key(name="default")"
+def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
 
 class Post(db.Model):
@@ -67,17 +36,51 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
     
     def render(self):
-        self.render_text = self.content.replace('\n', '<br>')
+        self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self)
         
 class BlogFront(BlogHandler):
     def get(self):
-        posts = greetins = Post.all().order('-created')
-        self.render.('front.html', posts = posts)
+        posts = db.GqlQuery("select * from Post order by created desc limit 10")
+        self.render("front.html", posts = posts)
         
 class PostPage(BlogHandler):
     def get(self, post_id):
-        key = виюЛунюакщь_зфер(
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
         
+        # self.write(post_id)
+        # self.write(' <+> ')
+        # self.write(key)
+        # self.write(' <+> ')
+        # self.write(post.content)
+        # self.write(' <+> ')
+        # return
+        
+        if not post:
+            self.error(404)
+            return
+            
+        self.render("permalink.html", p = post)
+        
+class NewPost(BlogHandler):
+    def get(self):
+        self.render("newpost.html")
+        
+    def post(self):
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+        
+        if subject and content:
+            p = Post(parent = blog_key(), subject = subject, content = content)
+            p.put()
+            self.redirect('/blog/%s' % str(p.key().id()))
+        else:
+            error = "subject and content, please!"
+            self.render("newpost.html", subject = subject, content = content, error = error)
     
-app = webapp2.WSGIApplication([('/', MainPage)], debug=True)
+app = webapp2.WSGIApplication([('/', MainPage),
+                               ('/blog/?', BlogFront),
+                               ('/blog/([0-9]+)', PostPage),
+                               ('/blog/newpost', NewPost),
+                              ], debug=True)
