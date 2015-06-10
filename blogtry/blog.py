@@ -12,11 +12,12 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), a
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
-    
+        
     def render_str(self, template, **params):
-        t = jinja_env.get_template(template)
-        return t.render(params)
-    
+        # t = jinja_env.get_template(template)
+        # return t.render(params)
+        return render_str(template, **params)
+        
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
@@ -82,5 +83,5 @@ class NewPost(BlogHandler):
 app = webapp2.WSGIApplication([('/', MainPage),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
-                               ('/blog/newpost', NewPost)
-                              ], debug = True)
+                               ('/blog/newpost', NewPost),
+                              ], debug=True)
